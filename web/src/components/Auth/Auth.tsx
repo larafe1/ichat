@@ -1,15 +1,22 @@
 import { useState, type ChangeEvent, type FunctionComponent } from "react";
 
+import { useMutation } from "@apollo/client";
 import { Button, Center, Image, Input, Stack, Text } from "@chakra-ui/react";
 
+import { userOperations } from "@/graphql/operations";
 import { useAuth } from "@/hooks";
 
-import type { AuthProps } from "./types";
+import type { AuthProps, CreateUserData, CreateUserVariables } from "./types";
 
 const Auth: FunctionComponent<AuthProps> = ({ session }) => {
   const [username, setUsername] = useState("");
 
   const { signIn } = useAuth();
+
+  const [createUser, { data, loading, error }] = useMutation<
+    CreateUserData,
+    CreateUserVariables
+  >(userOperations.Mutations.createUser);
 
   const handleSignIn = async () => await signIn();
 
@@ -17,7 +24,14 @@ const Auth: FunctionComponent<AuthProps> = ({ session }) => {
     setUsername(target.value);
 
   const onSubmit = async () => {
-    // createUsername mutation to send username to the server
+    if (!username.length) return;
+    console.log(data, loading, error);
+
+    try {
+      await createUser({ variables: { username } });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
